@@ -75,25 +75,28 @@ int main() {
     RecordSet db = genDb(RECORD_COUNT);
     int j = sqrt(RECORD_COUNT) - 1;
 
-    vector<int> querys(j*K);
+    for (int k = K1; k < K2; k += STEP) {
+        vector<int> querys(j * k);
+        double time = 0;
 
-    double time = 0;
-
-    CLOCK_START
-    for (int i = 0; i < NUM_TRAIL; i++) {
-        sock.read_some(buffer(querys));
-        vector<uint8_t> ret(K);
-        for (int n = 0; n < K; n++) {
-            vector<int> cur(querys.begin()+n*j, querys.begin() + j * (n+1));
-            auto a = answer(db, cur);
-            ret[i] = a.to_ulong();
+        CLOCK_START
+        for (int i = 0; i < NUM_TRAIL; i++) {
+            sock.read_some(buffer(querys));
+            vector<uint8_t> ret(k);
+            for (int n = 0; n < k; n++) {
+                vector<int> cur(querys.begin() + n * j, querys.begin() + j * (n + 1));
+                auto a = answer(db, cur);
+                ret[i] = a.to_ulong();
+            }
+            sock.write_some(buffer(ret));
         }
-        sock.write_some(buffer(ret));
+        CLOCK_END
+        time = ELAPSED;
+        cout << "answer time is " << time / 1000000 / NUM_TRAIL << " ms" << endl;
     }
-    CLOCK_END
-    time = ELAPSED;
-    cout << "answer time is " << time/1000000 << " ms" << endl;
-    sleep(3);
+
+
+    sleep(10);
 
     return 0;
 }

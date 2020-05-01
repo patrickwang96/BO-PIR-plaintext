@@ -15,6 +15,11 @@
 #define RECORD_COUNT (1024 * 1024)
 #define NUM_TRAIL 5
 
+#define K1 16
+#define K2 200
+#define STEP 8
+#define ALPHA 2
+
 typedef std::bitset<RECORD_LEN> Record;
 
 typedef std::vector<Record> RecordSet;
