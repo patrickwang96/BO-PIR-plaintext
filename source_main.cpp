@@ -74,14 +74,16 @@ int main() {
 
     RecordSet db = genDb(RECORD_COUNT);
     int j = sqrt(RECORD_COUNT) - 1;
+    vector<uint8_t> db_to_send(RECORD_COUNT / 8);
 
-    for (int k = K1; k < K2; k += STEP) {
+    for (int k = K1; k <= K2; k += STEP) {
         vector<int> querys(j * k);
         double time = 0;
 
         CLOCK_START
         for (int i = 0; i < NUM_TRAIL; i++) {
 //            sock.read_some(buffer(querys));
+            sock.write_some(buffer(db_to_send));
             read(sock, buffer(querys), transfer_all());
             vector<uint8_t> ret(k);
             for (int n = 0; n < k; n++) {
