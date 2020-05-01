@@ -114,14 +114,13 @@ Record answer(vector<int> s, RecordSet &db) {
 }
 
 
-Record decode(Record a, u64 u, unordered_map<int, int> &map) {
-    u64 index = map[u];
+Record decode(Record a) {
     Record h_j;
     return h_j ^ a;
 }
 
 vector<RecordSet> genLHintSets(RecordSet &db, int l, vector<vector<int>> &S_list) {
-    S_list.reserve(l);
+//    S_list.reserve(l);
     vector<RecordSet> hintset(l);
 
     for (int i = 0; i < l; i++) {
@@ -148,11 +147,11 @@ queryLSets(int l, vector<int> u, vector<vector<int>> &S_list) {
         // check is rest u indexs
         bool found = false;
         for (int j = 0; j < l; j++) {
-            hint = get_hint_index(u[i], S_list[l]);
+            hint = get_hint_index(u[i], S_list[j]);
             if (hashset[j].count(hint)) {
                 continue;
             } else {
-                ret[i] = extract_query_by_hint(u[i], S_list[l], hint);
+                ret[i] = extract_query_by_hint(u[i], S_list[j], hint);
                 found = true;
                 break;
             }

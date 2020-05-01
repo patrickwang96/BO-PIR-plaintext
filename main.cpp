@@ -1,5 +1,6 @@
 #include <iostream>
 #include <chrono>
+#include <boost/asio.hpp>
 #include "pir.h"
 
 using namespace std;
@@ -15,28 +16,43 @@ int main() {
     auto end = std::chrono::steady_clock::now();
 
     RecordSet db = genDb(RECORD_COUNT);
+    int n = db.size();
+    int sqrtn = sqrt(n);
 
 //    vector<unordered_map<int, int>> maps;
-    vector<vector<int>> S;
+    vector<vector<int>> S(L);
     vector<RecordSet> hintsets;
     vector<vector<int>> querys;
     vector<int> u(K);
     for (int i = 0; i < K; i++) u[i] = i;
 
-    double time = 0;
 
-    CLOCK_START
-    hintsets = genLHintSets(db, L, S);
-    CLOCK_END
-    time = ELAPSED;
-    cout << "preprocessing time is " << time / 1000000 << "ms" << endl;
 
-    time = 0;
-    CLOCK_START
-    querys = queryLSets(L, u, S);
-    CLOCK_END
-    time = ELAPSED;
-    cout << "query time is " << time / 1000000 << "ms" << endl;
+    // setup network
+
+    using namespace boost::asio;
+    io_service service;
+    ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 1234);
+    ip::tcp::socket sock(service);
+    sock.connect(ep);
+
+    vector<int> total(K * (sqrtn - 1));
+    for (int t = 0; t < NUM_TRAIL; t++) {
+        hintsets = genLHintSets(db, L, S);
+        querys = queryLSets(L, u, S);
+        for (int i = 0; i < K; i++) {
+            for (int j = 0; j < (sqrtn-1); j++) {
+                total[i * (sqrtn-1) + j] = querys[i][j];
+            }
+        }
+        sock.write_some(buffer(total));
+
+        vector<uint8_t> answer(K);
+        sock.read_some(buffer(answer));
+        for (auto a: answer) {
+            decode(db[a]);
+        }
+    }
 
     return 0;
 }

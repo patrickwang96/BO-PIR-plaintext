@@ -6,14 +6,19 @@
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
+#include <unistd.h>
+
+//#define BOOST_ASIO_SEPARATE_COMPILATION
+
 //#include "boost/asio/impl/src.hpp"
+#include <boost/asio.hpp>
 //#include "boost/asio/ssl/impl/src.hpp"
 
 #include "pir.h"
 
 using namespace std;
 
-void answer(RecordSet &db, vector<int> &queryset) {
+Record answer(RecordSet &db, vector<int> &queryset) {
     int n = db.size();
 //    int j = sqrt(n);
 
@@ -21,6 +26,7 @@ void answer(RecordSet &db, vector<int> &queryset) {
     for (int i : queryset) {
         ans ^= db[i % n];
     }
+    return ans;
 
 }
 
@@ -30,8 +36,7 @@ void answer(RecordSet &db, vector<int> &queryset) {
 
 #define ELAPSED std::chrono::duration<double, std::nano>(end - start).count()
 
-int main() {
-
+void test_answer() {
     auto start = std::chrono::steady_clock::now();
     auto end = std::chrono::steady_clock::now();
 
@@ -39,7 +44,6 @@ int main() {
     int j = sqrt(RECORD_COUNT) - 1;
     vector<int> querys(j);
     for (int i = 0; i < j; i++) querys[i] = rand() % RECORD_COUNT;
-
 
     double time = 0;
 
@@ -50,6 +54,46 @@ int main() {
     time = ELAPSED;
     cout << "answer time is " << time / 1000000 << "ms" << endl;
 
+}
+
+
+int main() {
+
+    using namespace boost::asio;
+    typedef boost::shared_ptr<ip::tcp::socket> socket_ptr;
+    io_service service;
+    ip::tcp::endpoint ep(ip::tcp::v4(), 1234);
+    ip::tcp::acceptor acc(service, ep);
+
+    ip::tcp::socket sock(service);
+    acc.accept(sock);
+
+
+    auto start = std::chrono::steady_clock::now();
+    auto end = std::chrono::steady_clock::now();
+
+    RecordSet db = genDb(RECORD_COUNT);
+    int j = sqrt(RECORD_COUNT) - 1;
+
+    vector<int> querys(j*K);
+
+    double time = 0;
+
+    CLOCK_START
+    for (int i = 0; i < NUM_TRAIL; i++) {
+        sock.read_some(buffer(querys));
+        vector<uint8_t> ret(K);
+        for (int n = 0; n < K; n++) {
+            vector<int> cur(querys.begin()+n*j, querys.begin() + j * (n+1));
+            auto a = answer(db, cur);
+            ret[i] = a.to_ulong();
+        }
+        sock.write_some(buffer(ret));
+    }
+    CLOCK_END
+    time = ELAPSED;
+    cout << "answer time is " << time/1000000 << " ms" << endl;
+    sleep(3);
 
     return 0;
 }
