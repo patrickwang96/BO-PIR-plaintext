@@ -13,13 +13,13 @@
 
 using namespace std;
 
-void answer(RecordSet &db, vector<int>& queryset) {
+void answer(RecordSet &db, vector<int> &queryset) {
     int n = db.size();
 //    int j = sqrt(n);
 
     Record ans = 0;
     for (int i : queryset) {
-        ans ^= db[i%n];
+        ans ^= db[i % n];
     }
 
 }
@@ -29,6 +29,7 @@ void answer(RecordSet &db, vector<int>& queryset) {
 #define CLOCK_END {end = std::chrono::steady_clock::now();}
 
 #define ELAPSED std::chrono::duration<double, std::nano>(end - start).count()
+
 int main() {
 
     auto start = std::chrono::steady_clock::now();
@@ -43,7 +44,8 @@ int main() {
     double time = 0;
 
     CLOCK_START
-    answer(db, querys);
+    for (int i = 0; i < K; i++)
+        answer(db, querys);
     CLOCK_END
     time = ELAPSED;
     cout << "answer time is " << time / 1000000 << "ms" << endl;
