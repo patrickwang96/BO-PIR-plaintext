@@ -9,8 +9,8 @@
 #include <vector>
 #include <unordered_map>
 
-#define RECORD_LEN (8)
-#define K 256
+#define RECORD_LEN (1)
+#define K 16
 #define L (K/2)
 #define RECORD_COUNT (1024 * 1024)
 
