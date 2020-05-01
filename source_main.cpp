@@ -81,7 +81,8 @@ int main() {
 
         CLOCK_START
         for (int i = 0; i < NUM_TRAIL; i++) {
-            sock.read_some(buffer(querys));
+//            sock.read_some(buffer(querys));
+            read(sock, buffer(querys), transfer_all());
             vector<uint8_t> ret(k);
             for (int n = 0; n < k; n++) {
                 vector<int> cur(querys.begin() + n * j, querys.begin() + j * (n + 1));
